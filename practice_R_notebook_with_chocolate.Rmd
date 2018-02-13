@@ -1,0 +1,408 @@
+---
+title: "Teaching R Notebook"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+
+Dear Reader,
+
+Welcome to the R class r markdown file. I have tried to put together a basic introduction for R . The audience this class is geared towards are people who have strong excel skills who want to automate some of their work in R or want to start to explore data using R. It assumes that you know how to use Vlookup in excel, nested if statments, and that you could create a pivot table if you had to. 
+
+The goal of this training is to get people who are at that skill level in excel to be able to do the same work in R so they can then go on to learn more advanced techniques in R for more complicated analysis and also to automate workflows they have in excel to make them more efficient, reproducible, and documented. 
+
+A great resource for learning R is Hadley Wickham's "R for Data Science":
+
+[R for Data Science](http://r4ds.had.co.nz/transform.html)  
+
+
+If you have any trouble, or if you have any questions, feel free to shoot me an email. 
+
+
+Thanks,
+
+Ed
+
+
+### Tutorial
+
+
+
+
+Ok, here is practice part of the notebook.
+
+
+![Here is the pipeline](https://silvrback.s3.amazonaws.com/uploads/b725299e-e264-4a96-9fbe-8a135e5cefd2/dsp_large.png)
+From https://districtdatalabs.silvrback.com/the-age-of-the-data-product
+
+Above is a picture of the data science pipeline taken from 
+
+We are going to focus on ingestion and wrangling today. 
+
+In R tutorials and forums and websites, one word you are going to hear a lot is "Dataframe".
+
+What is a dataframe?
+
+A dataframe can be thought of as a table, the same way that you think of an excel spreadsheet, except that the column names are always in the top row. 
+
+When we read data from excel spreadsheets or csv files into R, they become "Dataframes".
+
+We are going to use the tidyverse packages to work with the data we read into R. 
+
+The packages in the tidyverse make wrangling data easier.
+
+What is the tidyverse?
+
+"The tidyverse is an opinionated collection of R packages designed for data science. All packages share an underlying philosophy and common APIs. "
+
+They are a set of functions you can use to work with data in R. Sort of like the formulas you use in Excel. Except here when you open R studio or R, the formulas ( or in this case, functions) are not automatically loaded into the program, so you have to load them in.
+
+
+The sytax with the 'tidyverse' for all the functions is similar, which makes it easier to figure out how to use them and connect them.
+
+
+The sytax is as follows:
+
+new dataframe you are creating = data %>% verb() %>% verb()
+
+The group of characters "%>%" means "and then".
+
+For example, this block of code :
+
+new_dataframe = WHD_dataframe %>% filter(bw_atp_amt>10775) 
+ 
+Can be read as "make a new dataframe called new_dataframe by taking the WHD_dataframe data, and then filter it so that it only has the rows where the bw_atp_amt variable is greater than 10775"
+ 
+ 
+This syntax makes it a lot easier to read code, and a lot easier to understand what other people are doing when they share code. 
+
+The first thing we need to do is load in the tidyverse library.
+
+```{r}
+setwd('~')
+dir.create('chocolate')
+setwd('chocolate')
+dir.create('data')
+setwd('data')
+download.file('https://raw.githubusercontent.com/datasets/population/master/data/population.csv','population.csv')
+
+
+
+```
+
+```{r}
+
+setwd('~/chocolate/data')
+library(tidyverse)
+library(readr)
+
+```
+
+
+Here is an outline of what we are going to practice:
+
+
+## Injestion
+
+1. Reading csvs into memory.
+
+Wrangling
+
+1. Changing column names.
+2. Changing exisiting columns data type.
+3. Filtering columns out.
+4. Bringing in new columns from another table with a join (similar to vlookup).
+
+Computing
+
+1. Creating new columns that are based on exisiting columns with formulas:
+Subtraction,Addition,Multiplication,Division  
+Using if statements  
+
+2. Summarizing - creating new summary  tables - ( similar to pivot tables)
+
+
+
+## Injestion
+
+The two basic ways we ingest data is through reading csv files or Excel files into R so that we can manipulate them, when most people are starting out. 
+
+To read in a csv file, use the read_csv() function. For example, to read in the chocolate data, here is the code we would use:
+
+df_cacao = read_csv("flavors_of_cacao.csv")
+
+
+We have to set the working directory to where the data is, or where we are going to download the data. You can create a directory called 'Chocolate' and inside that directory a folder called "data" and download the data there if you want to. 
+
+
+One way to see  the files that are in a directory is with the function 'list.files()'.
+
+That function will print out a list of files that are in our directory.
+
+Let's give it a try:
+
+```{r}
+list.files()
+```
+
+We can see from the print out that we have the file we downloaded "flavors_of_cacao.csv".
+
+
+The first step we are going to do is read in the whd_whisard.csv file into R and into a "Dataframe"
+
+
+```{r }
+
+df_cacao = read_csv("flavors_of_cacao.csv")
+
+```
+
+Use the head() function to see the first 6 rows of your data.
+
+```{r}
+head(df_cacao)
+```
+
+In R notebook you can view all of the columns by clicking on the arrow on the left and right sides by the column headers.
+
+
+Using the View() function opens a new sheet that will look like a spreadsheet in excel. 
+```{r}
+View(df_cacao)
+```
+
+
+## Wrangling
+
+
+### Column Names
+
+We can use the "colnames" function to see all of the columns in this dataframe. In the parenthesis, we put the name of the dataframe that we want to see the column names for, so the pattern is colnames(dataframe). In this case it the function to execute is : colnames(df_cacao) 
+
+```{r}
+
+colnames(df_cacao)
+
+```
+
+
+
+summary() shows you the distribution of values in your dataset in each column.
+
+```{r}
+summary(df_cacao)
+```
+
+
+
+Many times it is important to change the column names of a dataframe to make it easier to work with, easier to read, or easier to join it to other tables.
+
+All of the columns in our dataset came in as characters, and inorder to do functions on them we have to change it to numeric.
+
+```{r}
+
+df_cacao <- df_cacao %>% mutate(Rating = as.numeric(Rating))
+
+
+summary(df_cacao)
+
+```
+
+The part below is stolen from the 'R for Data Science' book and website chapter on Data Transformation.
+
+
+[R for Data Science](http://r4ds.had.co.nz/transform.html)  
+
+note : dplyr is on of the Libraries that is part of the Tidyverse
+
+--------------------------------------------------------------------
+
+## 5.1.3 dplyr basics
+
+In this chapter you are going to learn the five key dplyr functions that allow you to solve the vast majority of your data manipulation challenges:
+
+* Pick observations by their values (filter()).
+
+* Reorder the rows (arrange()).
+
+* Pick variables by their names (select()).
+
+* Create new variables with functions of existing variables (mutate()).
+
+* Collapse many values down to a single summary (summarise()).
+
+These can all be used in conjunction with group_by() which changes the scope of each function from operating on the entire dataset to operating on it group-by-group. These six functions provide the verbs for a language of data manipulation.
+
+All verbs work similarly:
+
+The first argument is a data frame.
+
+The subsequent arguments describe what to do with the data frame, using the variable names (without quotes).
+
+The result is a new data frame.
+
+Together these properties make it easy to chain together multiple simple steps to achieve a complex result. Let’s dive in and see how these verbs work.
+
+--------------------------------------------------------------------
+
+
+
+The first one we are going to use is filter() . The Filter function is very similar to using filter in excel. In this case though when we use the filter function, it creates a new dataframe that is a subset of the data frame that we are filtering.
+
+## Pick observations by their values (filter()).
+
+
+We are going to use the filter function to subset the data to only include cases where the rating is above 3.50 . 
+
+Here is the code :
+
+highly_rated <-  df_cacao %>% filter(Rating>3.500)
+
+We can read this out loud as "Create a new dataframe called highly_rated by taking the df_cacao dataframe and then filtering it so that it only includes rows with values in the  'Rating' greater than 3.5"
+
+
+We will run that in the code chunk below:
+
+```{r}
+highly_rated <-  df_cacao %>% filter(Rating>3.500)
+
+head(highly_rated)
+
+View(highly_rated)
+```
+
+The View() function will display the table in a new tab in Rstudio. If you scroll over you will see that all the rows have values over 3.5  in the Rating column.
+
+
+Now create a  dataframe to only include cases where the Rating agreed to pay is greater than 3.6.
+
+```{r}
+
+
+```
+
+
+
+
+
+
+## Create new variables with functions of existing variables (mutate()).
+
+One way to create a new varaible is to use the mutate(). 
+
+Here is the general way to use mutate:
+
+new_dataframe = data %>% mutate(newcolumn = calculation)
+
+
+Below is a chuck of code that creates a new variable called "double_Rating" that just doubles the amount in the rating column.
+
+```{r}
+highly_rated <-  highly_rated %>% mutate(double_Rating = Rating*2)
+
+
+head(highly_rated)
+
+```
+
+
+
+Sort the new table by double_Rating : 
+
+```{r}
+highly_rated <-  highly_rated %>% arrange(desc(double_Rating))
+head(highly_rated)
+
+```
+
+
+
+## Join tables with left join
+
+Left joining allows you to join two tables, it is similar to a vlookup in excel.
+
+```{r}
+
+
+
+population = read_csv('population.csv')
+
+head(population)
+
+pop2016 <- population %>% filter(Year==2016)
+
+colnames(pop2016)[1] = "Country_Name"
+
+```
+
+
+
+```{r,eval=FALSE}
+
+
+```
+
+
+
+
+```{r}
+colnames(highly_rated)[9] = "Broad_Bean_Origin"
+```
+
+
+
+```{r}
+pop2016 <- pop2016 %>% mutate(Country_Name = ifelse(Country_Name=="Venezuela, RB","Venezuela",Country_Name))
+
+```
+
+```{r}
+
+highly_rated_w_country<- left_join(highly_rated,pop2016,by=c("Broad_Bean_Origin"="Country_Name"))
+
+```
+
+
+## Collapse many values down to a single summary (summarise()).
+
+
+```{r}
+
+highly_rated_w_country %>% summarise(mean(Value,na.rm=TRUE))
+
+```
+
+
+
+```{r}
+
+
+
+```
+
+
+
+
+
+## Reorder the rows (arrange()).
+
+
+```{r}
+
+```
+
+
+## Pick variables by their names (select()).
+
+```{r}
+```
+
+
+```{r}
+
+write.csv(highly_rated_w_country,'highly_rated_w_country.csv')
+
+```
+
+
